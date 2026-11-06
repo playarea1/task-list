@@ -8,3 +8,6 @@
   <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
   <%= form.submit "Sign in" %>
 <% end %>
+<br>
+
+<%= link_to "New here? Create an account", new_registration_path %>
