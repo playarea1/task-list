@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+  DEMO_EMAIL = "demo@example.com".freeze
+  DEMO_PASSWORD = "demo-password".freeze
+
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :tasks, dependent: :destroy

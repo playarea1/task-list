@@ -8,6 +8,12 @@
   <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
   <%= form.submit "Sign in" %>
 <% end %>
+
+<%= form_with url: session_path do |form| %>
+  <%= form.hidden_field :email_address, value: User::DEMO_EMAIL %>
+  <%= form.hidden_field :password, value: User::DEMO_PASSWORD %>
+  <%= form.submit "Try the demo account" %>
+<% end %>
 <br>
 
 <%= link_to "New here? Create an account", new_registration_path %>
