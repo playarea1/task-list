@@ -26,4 +26,10 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.valid?
     assert_includes user.errors[:password], "is too short (minimum is 8 characters)"
   end
+
+  test "deletes its tasks when destroyed" do
+    assert_difference -> { Task.count }, -2 do
+      users(:one).destroy
+    end
+  end
 end

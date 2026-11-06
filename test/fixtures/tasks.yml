@@ -1,0 +1,15 @@
+groceries:
+  user: one
+  title: Buy groceries
+  priority: medium
+
+taxes:
+  user: one
+  title: File taxes
+  priority: high
+  completed_at: <%= 1.day.ago.to_fs(:db) %>
+
+someone_elses:
+  user: two
+  title: Someone else's task
+  priority: low
