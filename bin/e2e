@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Cypress gets its own database: its leftover sessions would block the fixture reloads in bin/rails test.
+set -euo pipefail
+
+export RAILS_ENV=test DATABASE_URL=postgres:///task_list_e2e
+unset ELECTRON_RUN_AS_NODE
+
+bin/rails db:prepare db:seed
+bin/rails server -p 3100 -P tmp/pids/e2e.pid &
+trap 'kill $!' EXIT
+
+npx wait-on -t 90000 http://localhost:3100/up
+npm run cy:run

@@ -1,2 +1,15 @@
-<p>Signed in as <%= Current.user.email_address %></p>
-<%= button_to "Sign out", session_path, method: :delete %>
+<% content_for :head do %>
+  <%= vite_javascript_tag "application.tsx" %>
+<% end %>
+
+<div class="shell">
+  <header class="topbar">
+    <span class="topbar__brand">Task List</span>
+    <div class="topbar__account">
+      <span class="topbar__email"><%= Current.user.email_address %></span>
+      <%= button_to "Sign out", session_path, method: :delete, class: "link" %>
+    </div>
+  </header>
+
+  <div id="root"></div>
+</div>

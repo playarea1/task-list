@@ -81,6 +81,18 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend packages
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
       - name: Run tests
         env:
           RAILS_ENV: test
@@ -88,3 +100,13 @@ jobs:
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
+
+      - name: Run Cypress
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        run: |
+          bin/rails db:seed
+          bin/rails server -p 3100 &
+          npx wait-on http://localhost:3100/up
+          npm run cy:run

@@ -1,19 +1,29 @@
-<h1>Sign in</h1>
+<div class="auth">
+  <section class="auth__panel glass">
+    <span class="auth__brand">Task List</span>
+    <h1>Sign in</h1>
 
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+    <%= tag.div(flash[:alert], class: "auth__alert", role: "alert") if flash[:alert] %>
+    <%= tag.div(flash[:notice], class: "auth__notice") if flash[:notice] %>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
+    <%= form_with url: session_path, class: "auth__form" do |form| %>
+      <label class="field">
+        Email address
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
+      </label>
+      <label class="field">
+        Password
+        <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+      </label>
+      <%= form.submit "Sign in", class: "button button--primary" %>
+    <% end %>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.hidden_field :email_address, value: User::DEMO_EMAIL %>
-  <%= form.hidden_field :password, value: User::DEMO_PASSWORD %>
-  <%= form.submit "Try the demo account" %>
-<% end %>
-<br>
+    <%= form_with url: session_path do |form| %>
+      <%= form.hidden_field :email_address, value: User::DEMO_EMAIL, id: nil %>
+      <%= form.hidden_field :password, value: User::DEMO_PASSWORD, id: nil %>
+      <%= form.submit "Try the demo account", class: "button button--ghost" %>
+    <% end %>
 
-<%= link_to "New here? Create an account", new_registration_path %>
+    <%= link_to "New here? Create an account", new_registration_path %>
+  </section>
+</div>
