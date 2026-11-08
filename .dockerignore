@@ -29,6 +29,11 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+/public/vite*
+
+# Ignore browser tests.
+/cypress
+/cypress.config.ts
 
 # Ignore CI service files.
 /.github

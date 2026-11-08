@@ -27,8 +27,16 @@ ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
+# Node is only needed to build the frontend, so it stays out of the final image
+FROM docker.io/library/node:22-bookworm-slim AS node
+
 # Throw-away build stage to reduce size of final image
 FROM base AS build
+
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
@@ -44,6 +52,10 @@ RUN bundle install && \
     # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
     bundle exec bootsnap precompile -j 1 --gemfile
 
+# Vite is a dev dependency but is needed for the build; Cypress's browser is not
+COPY package.json package-lock.json ./
+RUN CYPRESS_INSTALL_BINARY=0 npm ci --include=dev
+
 # Copy application code
 COPY . .
 
@@ -52,7 +64,7 @@ COPY . .
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && rm -rf node_modules
 
 
 

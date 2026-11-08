@@ -24,6 +24,15 @@ jobs:
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
       
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build the production image
+        run: docker build -t task-list .
+
   lint:
     runs-on: ubuntu-24.04
     env:
