@@ -119,3 +119,51 @@ jobs:
           bin/rails server -p 3100 &
           npx wait-on http://localhost:3100/up
           npm run cy:run
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ scan_ruby, lint, test, docker ]
+    runs-on: ubuntu-24.04
+    concurrency: production
+    permissions:
+      contents: read
+      packages: write
+    env:
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SERVER: 13.184.244.165
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Trust the server
+        run: ssh-keyscan -H "$SERVER" >> ~/.ssh/known_hosts
+
+      - name: Set up Docker builds
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare the server on first deploy
+        run: |
+          if ! ssh "ubuntu@$SERVER" "docker ps --filter name=task_list-db -q" | grep -q .; then
+            bin/kamal server bootstrap
+            bin/kamal accessory boot db
+            sleep 20
+          fi
+
+      - name: Deploy
+        run: bin/kamal deploy
+

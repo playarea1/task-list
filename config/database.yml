@@ -82,4 +82,5 @@ production:
   <<: *default
   database: task_list_production
   username: task_list
-  password: <%= ENV["TASK_LIST_DATABASE_PASSWORD"] %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+  host: <%= ENV["DB_HOST"] %>
