@@ -1,5 +1,7 @@
 # Task List
 
+**Live app:** https://13.184.244.165.sslip.io
+
 A task manager built with Rails 8, React and PostgreSQL. You can sign up, add tasks with notes, a priority and a due date, edit them in place, mark them done, delete them, and filter by to do, done or all.
 
 To look around without creating an account, click **Try the demo account** on the sign-in page.
@@ -9,7 +11,8 @@ To look around without creating an account, click **Try the demo account** on th
 - Ruby 3.3, Rails 8.1, PostgreSQL
 - React 19 and TypeScript, built with Vite through `vite_rails`
 - Minitest for models and the API, Cypress for the browser flows
-- GitHub Actions for CI
+- GitHub Actions for CI and deployment
+- Docker and Kamal, running on a single AWS EC2 server
 
 ## Running it locally
 
@@ -50,16 +53,25 @@ Everything is under `/api/tasks`, needs a signed-in session and is limited to th
 
 A signed-out request gets a 401. Asking for another user's task gets a 404, because tasks are always looked up through `Current.user.tasks`.
 
+## Deployment
+
+Every push to `main` runs the security scan, RuboCop, the TypeScript check, Rails tests, Cypress and a production image build. If all of them pass, GitHub Actions publishes the image to GitHub's container registry and Kamal deploys it to EC2. Kamal moves traffic to the new container only after it passes the `/up` health check, and migrations run when the container starts.
+
 ## Decisions
 
-- **REST rather than GraphQL.** This is one resource with a handful of actions, and that maps directly onto a Rails controller. GraphQL would pay off with more types and more clients.
-- **Rails' built-in authentication rather than Devise.** The generator covers sign-in and sessions, and I added sign-up. Sessions are stored in the database, so signing out really ends them on the server.
-- **`completed_at` rather than a `completed` boolean.** One column records both whether a task is done and when.
-- **One app and one deploy.** Rails serves React from the same domain, so there is no CORS setup and the session cookie just works. Sign-in and sign-up are plain Rails views, and React loads only after login.
-- **Plain CSS.** The app is small enough that a UI library would add more than it saves.
+I went with REST instead of GraphQL. I know you use GraphQL, and I did think about it, but this app is really just one resource and a few actions. A normal Rails controller does that job with less code. I'd want GraphQL once there were more types of data and more clients asking for different shapes of it.
+
+For login I used the authentication generator that comes with Rails 8 instead of Devise. The app only needs sign-in, sign-up and sessions, and this way all of the code is sitting in the repo where I can read and change it. The generator doesn't do sign-up, so I added that. If this needed email confirmation or OAuth, I'd probably switch to Devise.
+
+Tasks have a `completed_at` timestamp rather than a `completed` true/false. It's the same one column, but now I also know when something was finished.
+
+React and Rails are one app on one domain. I didn't see a reason to split them for something this size, and keeping them together meant no CORS setup and no tokens to manage, since the session cookie just works. The sign-in and sign-up pages are still regular Rails views.
+
+The styling is plain CSS. It's one file, and for an app this small I didn't think a UI library would save me much.
 
 ## Known limits and what I'd do next
 
 - The task list has no pagination yet, and there is no search.
 - Password reset is left out because the app doesn't send email.
+- The app and PostgreSQL share one small server, which is fine for a demo. For real traffic I'd move the database to RDS and run at least two app servers.
 - Everyone using the demo account shares the same tasks. A nightly reset or a throwaway demo user per visitor would fix that.
